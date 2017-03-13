@@ -9,7 +9,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
+import libsvm.svm_model;
 import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.LinearRegression;
 import weka.core.Instances;
@@ -17,6 +19,7 @@ import weka.core.SelectedTag;
 import weka.core.converters.ConverterUtils;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Properties;
 
@@ -45,9 +48,18 @@ public class Main extends Application {
 
 
 
-            scheme.setOptions(weka.core.Utils.splitOptions("-C 1.0 -L 0.0010 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"weka.classifiers.functions.supportVector.PolyKernel -C 250007 -E 1.0\""));
+           // scheme.setOptions(weka.core.Utils.splitOptions("-C 1.0 -L 0.0010 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"weka.classifiers.functions.supportVector.PolyKernel -C 250007 -E 1.0\""));
 
-            
+
+            Classifier cls = new LibSVM();
+            cls.buildClassifier(data);
+            // evaluate classifier and print some statistics
+            Evaluation eval = new Evaluation(data);
+            eval.evaluateModel(cls, data);
+
+            System.out.println(eval.toSummaryString("\nResults\n======\n", false));
+
+
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -83,6 +95,11 @@ public class Main extends Application {
 
 
         //launch(args);
+    }
+    public static svm_model getModel(LibSVM svm) throws IllegalAccessException, NoSuchFieldException {
+        Field modelField = svm.getClass().getDeclaredField("m_Model");
+        modelField.setAccessible(true);
+        return (svm_model) modelField.get(svm);
     }
     public static Classifier getClassifierById(int id){
         Classifier c = null;
