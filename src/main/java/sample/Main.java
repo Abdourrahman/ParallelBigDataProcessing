@@ -81,7 +81,7 @@ public class Main extends Application {
 
         Main c = new Main();
         c.loadArffFile();
-
+        // this is what I want
         //launch(args);
     }
     public static svm_model getModel(LibSVM svm) throws IllegalAccessException, NoSuchFieldException {
