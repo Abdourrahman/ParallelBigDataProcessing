@@ -14,6 +14,7 @@ import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.LinearRegression;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SelectedTag;
 import weka.core.converters.ConverterUtils;
@@ -39,27 +40,33 @@ public class Main extends Application {
         BufferedReader reader = null;
 
         try {
+
             URL url = this.getClass().getResource( "/datasetes/credit.arff" );
+
             ConverterUtils.DataSource source = new ConverterUtils.DataSource(url.getPath());
+
             Instances data = source.getDataSet();
+
             if (data.classIndex() == -1)
                 data.setClassIndex(data.numAttributes() - 1);
-            weka.classifiers.functions.LibSVM scheme = new weka.classifiers.functions.LibSVM();
 
+            // create Model
+            LibSVM libsvmModel = new LibSVM();
+            libsvmModel.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR, LibSVM.TAGS_KERNELTYPE));
 
+            // train classifier
+            libsvmModel.buildClassifier(data);
 
-           // scheme.setOptions(weka.core.Utils.splitOptions("-C 1.0 -L 0.0010 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"weka.classifiers.functions.supportVector.PolyKernel -C 250007 -E 1.0\""));
+            svm_model model = getModel(libsvmModel);
 
+            // get the indices of the support vectors in the training data
+            // Note: this indices start count at 1 insteadof 0
+            int[] indices = model.sv_indices;
 
-            Classifier cls = new LibSVM();
-            cls.buildClassifier(data);
-            // evaluate classifier and print some statistics
-            Evaluation eval = new Evaluation(data);
-            eval.evaluateModel(cls, data);
-
-            System.out.println(eval.toSummaryString("\nResults\n======\n", false));
-
-
+            for (int i : indices) {
+                Instance supportVector = data.instance(i - 1);
+                System.out.println(i + ": " + supportVector);
+            }
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -68,31 +75,12 @@ public class Main extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // setting class attribute
-
     }
 
     public static void main(String[] args) throws DbxException {
 
-
         Main c = new Main();
-
         c.loadArffFile();
-
-/*        try {
-            input = new FileInputStream("config.properties");
-            prop.load(input);
-            DbxRequestConfig config = new DbxRequestConfig("ParallelBigDataProcessing", "en_US");
-            DbxClientV2 client = new DbxClientV2(config, prop.getProperty("ACCESS_TOKEN"));
-            FullAccount account = client.users().getCurrentAccount();
-            System.out.println(account.getName().getDisplayName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-*/
-
-
-
 
         //launch(args);
     }
@@ -101,20 +89,5 @@ public class Main extends Application {
         modelField.setAccessible(true);
         return (svm_model) modelField.get(svm);
     }
-    public static Classifier getClassifierById(int id){
-        Classifier c = null;
-        if(id == 0){
-            LibSVM sv = new LibSVM();
-            sv.setSVMType(new SelectedTag(LibSVM.SVMTYPE_EPSILON_SVR,LibSVM.TAGS_SVMTYPE));
-            sv.setCost(Math.pow(2, 2));
-            sv.setGamma(Math.pow(2, 1));
-            sv.setEps(0.00001);
-            c=sv;
-        }
-        else if(id == 1){
-            c = new LinearRegression();
-        }
 
-        return c;
-    }
 }
