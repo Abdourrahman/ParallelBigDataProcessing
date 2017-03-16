@@ -7,6 +7,12 @@
     <groupId>groupId</groupId>
     <artifactId>ParallelBigDataProcessing</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <properties>
+
+        <!-- Use the latest version whenever possible. -->
+        <jackson.version>2.7.0</jackson.version>
+
+    </properties>
 
     <dependencies>
     <dependency>
@@ -25,6 +31,25 @@
             <artifactId>weka-stable</artifactId>
             <version>3.6.6</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <!-- Note: core-annotations version x.y.0 is generally compatible with
+                 (identical to) version x.y.1, x.y.2, etc. -->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
     </dependencies>
 
 </project>

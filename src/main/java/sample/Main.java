@@ -1,28 +1,11 @@
 package sample;
 
 import com.dropbox.core.DbxException;
-import com.dropbox.core.v2.users.FullAccount;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.v2.DbxClientV2;
-import libsvm.svm_model;
-import weka.classifiers.Classifier;
-import weka.classifiers.Evaluation;
-import weka.classifiers.functions.LibSVM;
-import weka.classifiers.functions.LinearRegression;
-import weka.core.Instance;
-import weka.core.Instances;
-import weka.core.SelectedTag;
-import weka.core.converters.ConverterUtils;
-
-import java.io.*;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.Properties;
 
 public class Main extends Application {
 
@@ -36,8 +19,8 @@ public class Main extends Application {
     }
 
 
-    public  void loadArffFile() throws DbxException{
-        BufferedReader reader = null;
+    private  void loadArffFile() throws Exception {
+       /* BufferedReader reader = null;
 
         try {
 
@@ -75,19 +58,25 @@ public class Main extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+*/
+
+        DataController dataControl = new DataController();
+        dataControl.setDatasetFileName("credits")
+                   .setClassIndex()
+                   .setArffSrcFileName("credit")
+                   .training()
+                   .generateSupportVectors()
+
+
+
+
     }
 
-    public static void main(String[] args) throws DbxException {
+    public static void main(String[] args) throws Exception {
 
         Main c = new Main();
         c.loadArffFile();
         // this is what I want
         //launch(args);
     }
-    public static svm_model getModel(LibSVM svm) throws IllegalAccessException, NoSuchFieldException {
-        Field modelField = svm.getClass().getDeclaredField("m_Model");
-        modelField.setAccessible(true);
-        return (svm_model) modelField.get(svm);
-    }
-
 }
