@@ -4,11 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import libsvm.svm_model;
 import weka.classifiers.functions.LibSVM;
 import weka.core.Instances;
+import weka.core.SelectedTag;
 import weka.core.converters.ConverterUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
 
 /**
  * Created by abdou on 3/15/17.
@@ -65,9 +68,12 @@ public class DataController {
      * @param sourceArff : set the type of object that has type of Arrf file
      * @throws Exception
      */
-    public DataController setSourceArff(ConverterUtils.DataSource sourceArff) throws Exception {
+    public DataController setSourceArff() throws Exception {
+
+
         this.sourceArff = new ConverterUtils.DataSource(this.getClass().
                 getResource( "/datasetes/"+this.getSrcFileName()+".arff" ).getPath());
+
         return this;
     }
 
@@ -105,6 +111,7 @@ public class DataController {
      * @throws Exception
      */
     public Instances getDataset() throws Exception {
+
         return this.sourceArff.getDataSet();
     }
 
@@ -113,7 +120,9 @@ public class DataController {
      * @throws Exception
      */
     public DataController setClassIndex() throws Exception {
-        if (this.getDataset().classIndex() == -1)
+
+        //if (this.getDataset().classIndex() == -1)
+
             this.getDataset().setClassIndex(this.getDataset().numAttributes() - 1);
         return this;
     }
@@ -133,31 +142,12 @@ public class DataController {
      * @throws Exception
      */
     public DataController training() throws Exception {
+        //System.out.print(this.getLibsvmModel());
+        this.getLibsvmModel().setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR, LibSVM.TAGS_KERNELTYPE));
         this.getLibsvmModel().buildClassifier(this.getDataset());
         return this;
     }
 
-    /**
-     *
-     * @return Array of Support vectors Indices
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     */
-    public int[] getSupportVectorInices() throws NoSuchFieldException, IllegalAccessException {
-        return  this.getSvmModel().sv_indices;
-    }
-
-    public DataController generateSupportVectors(File file, Object result) throws Exception {
-
-        this.mapper.writeValue(file, result);
-        return this;
-    }
-
-    private static svm_model getModel(LibSVM svm) throws IllegalAccessException, NoSuchFieldException {
-        Field modelField = svm.getClass().getDeclaredField("m_Model");
-        modelField.setAccessible(true);
-        return (svm_model) modelField.get(svm);
-    }
     //Tasks
     // convert the data on arff file to json file ( I mean Support vectors )
     // first we must get the number of Attributes  code : supportVector.numAttributes()
@@ -171,4 +161,93 @@ public class DataController {
         properties : ObjectMapper mapper, String FileName ( getDatasetFileName , setDatasetFileName ),url (setUrl,getUrl)
         methods : readFromeFile(),writeToFile(), setSupportVectors(svm_model model)
         */
+        public DataController setKernalType(int kernalType){
+            this.kernalType = kernalType;
+            return this;
+        }
+
+        public int kernalType;
+
+
+        public DataController setConfidence(double coef){
+
+            this.coef = coef;
+            return this;
+        }
+
+        public double coef = 0.0;
+
+        public svm_model SVM_Model;
+
+        public Instances dataSet;
+
+        public DataController train(){
+            try {
+
+                URL url = this.getClass().getResource( "/datasetes/"+this.getSrcFileName()+".arff" );
+
+                ConverterUtils.DataSource source = new ConverterUtils.DataSource(url.getPath());
+
+                Instances data = source.getDataSet();
+
+                this.dataSet = data;
+
+                if (data.classIndex() == -1)
+                    data.setClassIndex(data.numAttributes() - 1);
+
+                // create Model
+                LibSVM libsvmModel = new LibSVM();
+                libsvmModel.setKernelType(new SelectedTag(this.kernalType, LibSVM.TAGS_KERNELTYPE));
+                if (this.coef != 0){
+                   // libsvmModel.setCoef0(this.coef);
+                }
+
+                // train classifier
+                libsvmModel.buildClassifier(data);
+
+                //svm_model model = getModel(libsvmModel);
+                this.SVM_Model = getModel(libsvmModel);
+                // get the indices of the support vectors in the training data
+                // Note: this indices start count at 1 insteadof 0
+             /*   int[] indices = model.sv_indices;
+
+                for (int i : indices) {
+                    Instance supportVector = data.instance(i - 1);
+                    System.out.println(i + ": " + supportVector);
+                }
+*/
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return this;
+        }
+    /**
+     *
+     * @return Array of Support vectors Indices
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    public int[] getSupportVectorIndices() throws NoSuchFieldException, IllegalAccessException {
+        return  this.getSvmModel().sv_indices;
+    }
+
+    public static int generateSupportVectors(File file, Object result) throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(file, result);
+        return 0;
+    }
+
+
+
+    public static svm_model getModel(LibSVM svm) throws IllegalAccessException, NoSuchFieldException {
+        Field modelField = svm.getClass().getDeclaredField("m_Model");
+        modelField.setAccessible(true);
+        return (svm_model) modelField.get(svm);
+    }
+
 }
